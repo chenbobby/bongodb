@@ -1,4 +1,4 @@
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::os::unix::net::{UnixStream, UnixListener};
 use std::thread;
 
@@ -15,8 +15,6 @@ fn main() {
             }
         };
 
-    println!("{:?}", socket.local_addr());
-
     // Begin listening for incoming connections.
     for stream in socket.incoming() {
         match stream {
@@ -32,10 +30,16 @@ fn main() {
 }
 
 fn handle_client(stream: UnixStream) {
-    let buffered_stream = BufReader::new(stream);
-    for line in buffered_stream.lines() {
+    let stream_reader = BufReader::new(&stream);
+    let mut stream_writer = BufWriter::new(&stream);
+
+    for line in stream_reader.lines() {
         match line {
-            Ok(line) => println!("{}", line),
+            Ok(line) => {
+                println!("{}", line);
+                stream_writer.write(&line.into_bytes()).unwrap();
+                stream_writer.flush().unwrap();
+            },
             Err(err) => {
                 println!("{}", err);
                 break;

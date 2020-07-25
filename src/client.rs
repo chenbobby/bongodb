@@ -5,9 +5,10 @@ const UNIX_SOCKET_PATH: &str = "/tmp/bongodb.sock";
 
 fn main() -> std::io::Result<()> {
     let mut stream = UnixStream::connect(UNIX_SOCKET_PATH)?;
-    stream.write_all(b"Hello, BongoDB.")?;
-    let mut response = String::new();
-    stream.read_to_string(&mut response)?;
-    println!("{}", response);
+    stream.write_all(b"Hello, BongoDB.\n")?;
+    let mut buffer = [0; 64];
+    stream.read(&mut buffer)?;
+    let data = String::from_utf8(buffer.to_vec()).unwrap();
+    println!("{}", &data);
     Ok(())
 }
