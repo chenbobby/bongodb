@@ -1,6 +1,9 @@
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::{mem, thread};
+use std::io::{Read, BufReader, BufWriter, Write};
 use std::os::unix::net::{UnixStream, UnixListener};
-use std::thread;
+
+extern crate bongodb;
+use bongodb::message::{MessageHeader, MessageStatus};
 
 const UNIX_SOCKET_PATH: &str = "/tmp/bongodb.sock";
 
@@ -16,10 +19,11 @@ fn main() {
         };
 
     // Begin listening for incoming connections.
+    println!("BongoDB server is now listening on Unix socket {}", UNIX_SOCKET_PATH);
     for stream in socket.incoming() {
         match stream {
-            Ok(stream) => {
-                thread::spawn(|| handle_client(stream));
+            Ok(mut stream) => {
+                thread::spawn(move || handle_client(&mut stream));
             },
             Err(e) => {
                 eprintln!("Failed to accept connection: {}", e);
@@ -29,21 +33,79 @@ fn main() {
     }
 }
 
-fn handle_client(stream: UnixStream) {
-    let stream_reader = BufReader::new(&stream);
-    let mut stream_writer = BufWriter::new(&stream);
-
-    for line in stream_reader.lines() {
-        match line {
-            Ok(line) => {
-                println!("{}", line);
-                stream_writer.write(&line.into_bytes()).unwrap();
-                stream_writer.flush().unwrap();
-            },
-            Err(err) => {
-                println!("{}", err);
+fn handle_client(stream: &mut UnixStream) {
+    println!("New client connected.");
+    loop {
+        // Read in raw bytes from the Unix stream (for the message header).
+        let mut in_header_bytes = [0; mem::size_of::<MessageHeader>()];
+        match stream.read(&mut in_header_bytes) {
+            Err(e) => {
+                eprintln!("Failed to read message header from client: {}", e);
                 break;
+            },
+            Ok(num_bytes) => {
+                if num_bytes != in_header_bytes.len() {
+                    eprintln!(
+                        "Expected {} message header bytes; got {}",
+                        in_header_bytes.len(),
+                        num_bytes,
+                    );
+                    break;
+                }
             }
+        };
+
+        // Parse raw bytes into a message header.
+        let in_header = MessageHeader::from_bytes(&in_header_bytes).unwrap();
+
+        // Read in raw bytes from the Unix stream (for the message payload).
+        let mut in_payload_bytes: Vec<u8> = vec![0; in_header.payload_length];
+        match stream.read(&mut in_payload_bytes) {
+            Err(e) => {
+                eprintln!("Failed to read message payload from client: {}", e);
+            },
+            Ok(num_bytes) => {
+                if num_bytes != in_payload_bytes.len() {
+                    eprintln!(
+                        "Expected {} message payload bytes; got {}",
+                        in_payload_bytes.len(),
+                        num_bytes,
+                    );
+                    break;
+                }
+            },
         }
+        let in_payload = String::from_utf8(in_payload_bytes).unwrap();
+        println!("{}", in_payload);
+        let out_payload = in_payload;
+
+        // Build outgoing message header.
+        let out_header = MessageHeader {
+            status: MessageStatus::OkDone,
+            payload_length: out_payload.len()
+        };
+
+        // Send outgoing message header.
+        stream.write(out_header.as_bytes()).unwrap();
+        stream.flush().unwrap();
+
+        // Send outgoing message header.
+        stream.write(out_payload.as_bytes()).unwrap();
+        stream.flush().unwrap();
     }
+    println!("Closing client connection");
+
+    // for line in stream_reader.lines() {
+    //     match line {
+    //         Ok(line) => {
+    //             println!("{}", line);
+    //             writeln!(stream_writer, "From Server: {}", line).unwrap();
+    //             stream_writer.flush().unwrap();
+    //         },
+    //         Err(e) => {
+    //             println!("{}", e);
+    //             break;
+    //         },
+    //     }
+    // }
 }
