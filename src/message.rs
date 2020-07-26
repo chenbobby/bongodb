@@ -11,8 +11,8 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Error::InvalidBytes => write!(f, "Raw bytes are invalid for MessageHeader"),
-            Error::NotEnoughHeaderBytes(n) => write!(f, "Failed to read sufficient bytes ({}) for MessageHeader", n),
+            Error::InvalidBytes => write!(f, "Raw bytes are invalid for Header"),
+            Error::NotEnoughHeaderBytes(n) => write!(f, "Failed to read sufficient bytes ({}) for message header", n),
             Error::NotEnoughPayloadBytes(n) => write!(f, "Failed to read sufficient bytes ({}) for message payload", n),
             Error::ReadFailure(e) => write!(f, "{}", e),
         }
@@ -24,25 +24,25 @@ pub enum Status {
     OkDone,
 }
 
-/// A Unix socket message between the client and server.
-pub struct MessageHeader {
+/// A Unix socket message header between the client and server.
+struct Header {
     pub status: Status,
     pub payload_len: usize,
 }
 
-impl MessageHeader {
+impl Header {
     fn as_bytes(&self) -> &[u8] {
         unsafe {
             slice::from_raw_parts(
-                self as *const MessageHeader as *const u8,
-                mem::size_of::<MessageHeader>(),                
+                self as *const Header as *const u8,
+                mem::size_of::<Header>(),                
             )
         }
     }
 
-    fn from_bytes(bytes: &[u8]) -> Result<&MessageHeader, Error> {
+    fn from_bytes(bytes: &[u8]) -> Result<&Header, Error> {
         let (prefix, message_headers, suffix) = unsafe {
-            bytes.align_to::<MessageHeader>()
+            bytes.align_to::<Header>()
         };
 
         if !prefix.is_empty() || !suffix.is_empty() || message_headers.len() != 1 {
@@ -58,7 +58,7 @@ pub fn read<R>(reader: &mut R) -> Result<String, Error>
     where R: io::Read,
 {
     // Read in raw bytes for the message header.
-    let mut mh_bytes = [0; mem::size_of::<MessageHeader>()];
+    let mut mh_bytes = [0; mem::size_of::<Header>()];
     match reader.read(&mut mh_bytes) {
         Err(e) => {
             return Err(Error::ReadFailure(e));
@@ -71,7 +71,7 @@ pub fn read<R>(reader: &mut R) -> Result<String, Error>
     };
 
     // Parse raw bytes into a message header.
-    let mh = MessageHeader::from_bytes(&mh_bytes)?;
+    let mh = Header::from_bytes(&mh_bytes)?;
 
     // Read in raw bytes for the message payload.
     let mut payload_bytes: Vec<u8> = vec![0; mh.payload_len];
@@ -95,7 +95,7 @@ pub fn write<W>(writer: &mut W, status: Status, payload: &[u8])
     where W: io::Write,
 {
     // Build and write message header.
-    let mh = MessageHeader {
+    let mh = Header {
         status,
         payload_len: payload.len(),
     };
