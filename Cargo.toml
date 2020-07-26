@@ -9,12 +9,12 @@ name = "bongodb"
 path = "src/lib.rs"
 
 [[bin]]
-name = "bongodb"
-path = "src/main.rs"
+name = "bongodb-server"
+path = "src/bin/server.rs"
 
 [[bin]]
 name = "bongodb-client"
-path = "src/client.rs"
+path = "src/bin/client.rs"
 
 [dependencies]
 libc = "0.2.73"
