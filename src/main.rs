@@ -1,5 +1,5 @@
 use std::{mem, thread};
-use std::io::{Read, BufReader, BufWriter, Write};
+use std::io::{Read, Write};
 use std::os::unix::net::{UnixStream, UnixListener};
 
 extern crate bongodb;
@@ -94,18 +94,4 @@ fn handle_client(stream: &mut UnixStream) {
         stream.flush().unwrap();
     }
     println!("Closing client connection");
-
-    // for line in stream_reader.lines() {
-    //     match line {
-    //         Ok(line) => {
-    //             println!("{}", line);
-    //             writeln!(stream_writer, "From Server: {}", line).unwrap();
-    //             stream_writer.flush().unwrap();
-    //         },
-    //         Err(e) => {
-    //             println!("{}", e);
-    //             break;
-    //         },
-    //     }
-    // }
 }
