@@ -17,3 +17,4 @@ name = "bongodb-client"
 path = "src/client.rs"
 
 [dependencies]
+libc = "0.2.73"

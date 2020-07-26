@@ -1,4 +1,4 @@
-use std::io::{Read, BufRead, BufReader, BufWriter, Write};
+use std::io::{Read, BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::{mem, io};
 
@@ -16,9 +16,10 @@ fn main() {
     let mut stream = UnixStream::connect(UNIX_SOCKET_PATH).unwrap();
 
     // Add interactive marker for tty input.
-    // TODO: Check if stdin is tty.
-    print!("{}", CLIENT_PROMPT);
-    io::stdout().flush().unwrap();
+    if unsafe { libc::isatty(libc::STDIN_FILENO) != 0 } {
+        print!("{}", CLIENT_PROMPT);
+        io::stdout().flush().unwrap();
+    }
 
     for line in stdin_reader.lines() {
         match line {
@@ -88,9 +89,11 @@ fn main() {
                 let in_payload = String::from_utf8(in_payload_bytes).unwrap();
                 println!("{}", in_payload);
                 
-                // Prepare for more user input.
-                print!("{}", CLIENT_PROMPT);
-                io::stdout().flush().unwrap();
+                // Add interactive marker for additional tty input.
+                if unsafe { libc::isatty(libc::STDIN_FILENO) != 0 } {
+                    print!("{}", CLIENT_PROMPT);
+                    io::stdout().flush().unwrap();
+                }   
             },
         }
     }
