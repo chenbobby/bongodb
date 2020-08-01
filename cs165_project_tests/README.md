@@ -2,7 +2,20 @@
 
 This directory holds scripts for generating data and tests, based off of the test suite from the CS165 course project.
 
+## Contents
+
+| Name | Description |
+|-|-|
+| `/data_generation_scripts` | a directory of the original Python scripts that generate test data from the CS165 project |
+| `/original_bash_scripts` | a directory of the original bash scripts from the CS165 project |
+| `setup.sh` | a Python setup script |
+| `gen_all_for_staff_use.sh` | a script for data and query file generation; uses scripts in `/data_generation_scripts` |
+| `test_milestone.sh` | a script for running test suites for milestones from the original CS165 project; uses `run_test.sh` |
+| `run_test.sh` | a script for running individual tests from the original CS165 project; uses `verify_output_standalone.sh` |
+| `verify_output_standalone.sh` | a script for cleaning query output and `diff`ing with expected output |
+
 ## Setup
+
 1. Install Python 3.
 1. Create a Python 3 virtual environment.
 1. Install Python dependencies into the virtual environment, as listed in the file `requirements.txt`.
@@ -16,8 +29,24 @@ You can run the setup script by running the following command (from within this 
 
 ## Generating Data
 
+The Python scripts in `/data_generation_scripts` will produce three kinds of output.
+
+1. data files (`.csv`)
+1. query commands (`.dsl`)
+1. expected output files (`.exp`)
+
+The script `gen_all_for_bobs_use.sh` will create a directory `/generated_data` to hold the generated output.
+
+You can run the data generation script by running the following command (from within this `cs165_project_test` directory).
+```bash
+./gen_all_for_bobs_use.sh
+```
+
 ## Testing
 
+
+
+---
 
 # Original README content from CS165 course project
 Example instructions for how to generate some data for all milestones
