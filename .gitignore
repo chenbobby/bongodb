@@ -1,4 +1,7 @@
 /target
 
 __pycache__
-venv
+cs165_project_tests/venv
+cs165_project_tests/generated_data
+cs165_project_tests/test_output
+cs165_project_tests/last_server.out
