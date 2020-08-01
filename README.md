@@ -23,18 +23,6 @@ This project is based off of Harvard's [CS165](http://daslab.seas.harvard.edu/cl
 
 The data generation scripts from the CS165 course project are copied to the directory `cs165_project_tests`.
 
-#### Setup
-1. Install Python 3.
-1. Create a Python 3 virtual environment in the directory `cs165_project_tests`.
-1. Install Python dependencies into the virtual environment.
-    - Python dependencies are listed in the file `cs165_project_tests/requirements.txt`.
 
-A handy setup script completes all the setup steps above, but it has only been tested on a Debian 10 operating system.
-
-It is important to run the setup script from inside the `cs165_project_test` directory. You can run the setup script with the following two commands.
-```bash
-cd cs165_project_tests
-./setup.sh
-```
 
 #### Generate Test Data
